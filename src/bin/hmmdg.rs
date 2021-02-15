@@ -26,6 +26,11 @@ struct Opt {
     /// supplied, a random message is generated for you.
     #[structopt(long = "message")]
     message: Option<String>,
+
+    /// You can optionally supply a fixed tag to write for every entry. If this is not
+    /// supplied, a random message is generated for you.
+    #[structopt(long = "tag")]
+    tag: Option<String>,
 }
 
 fn main() {
@@ -72,6 +77,9 @@ fn app(opt: Opt) -> Result<()> {
         let t = start.checked_add_signed(step * i as i32).unwrap();
         Entry::new(
             t,
+            opt.tag
+                .clone()
+                .unwrap_or_else(|| lipsum::lipsum_words(20)),
             opt.message
                 .clone()
                 .unwrap_or_else(|| lipsum::lipsum_words(20)),

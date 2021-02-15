@@ -9,16 +9,21 @@ use std::io::Write;
 
 pub struct Entry {
     datetime: DateTime<FixedOffset>,
+    tag: String,
     message: String,
 }
 
 impl Entry {
-    pub fn new(datetime: DateTime<FixedOffset>, message: String) -> Self {
-        Entry { datetime, message }
+    pub fn new(datetime: DateTime<FixedOffset>, tag: String,  message: String) -> Self {
+        Entry { datetime, tag, message }
     }
 
     pub fn with_message(message: &str) -> Self {
-        Self::new(Utc::now().into(), message.trim().to_owned())
+        Self::new(Utc::now().into(), "".to_string(), message.trim().to_owned())
+    }
+
+    pub fn with_tag_message(tag: &str, message: &str) -> Self {
+        Self::new(Utc::now().into(), tag.trim().to_owned(), message.trim().to_owned())
     }
 
     pub fn datetime(&self) -> &DateTime<FixedOffset> {
@@ -27,6 +32,10 @@ impl Entry {
 
     pub fn message(&self) -> &str {
         &self.message
+    }
+
+    pub fn tag(&self) -> &str {
+        &self.tag
     }
 
     pub fn contains(&self, s: &str) -> bool {
@@ -43,6 +52,7 @@ impl Entry {
             let mut writer = csv::Writer::from_writer(&mut buf);
             writer.write_record(&[
                 self.datetime.to_rfc3339(),
+                serde_json::to_string(&self.tag)?,
                 serde_json::to_string(&self.message)?,
             ])?;
         }
@@ -59,12 +69,16 @@ impl TryFrom<quick_csv::Row> for Entry {
         let date = cols
             .next()
             .ok_or_else(|| error::from_str("malformed CSV"))?;
-        let msg = cols
-            .next()
-            .ok_or_else(|| error::from_str("malformed CSV"))?;
+            let tag = cols
+                .next()
+                .ok_or_else(|| error::from_str("malformed CSV"))?;
+                let msg = cols
+                    .next()
+                    .ok_or_else(|| error::from_str("malformed CSV"))?;
 
         Ok(Entry {
             datetime: chrono::DateTime::parse_from_rfc3339(date)?,
+            tag: serde_json::from_str(&tag)?,
             message: serde_json::from_str(&msg)?,
         })
     }
@@ -75,10 +89,12 @@ impl TryFrom<&StringRecord> for Entry {
 
     fn try_from(sr: &StringRecord) -> Result<Self> {
         let date = sr.get(0).ok_or_else(|| error::from_str("malformed CSV"))?;
-        let msg = sr.get(1).ok_or_else(|| error::from_str("malformed CSV"))?;
+        let tag = sr.get(1).ok_or_else(|| error::from_str("malformed CSV"))?;
+        let msg = sr.get(2).ok_or_else(|| error::from_str("malformed CSV"))?;
 
         Ok(Entry {
             datetime: chrono::DateTime::parse_from_rfc3339(date)?,
+            tag: serde_json::from_str(&tag)?,
             message: serde_json::from_str(&msg)?,
         })
     }
@@ -105,12 +121,13 @@ mod tests {
     use super::*;
     use test_case::test_case;
 
-    #[test_case("2012-01-01T00:00:00+00:00,\"\"\"hello world\"\"\""   => ("2012-01-01T00:00:00+00:00".to_owned(), "hello world".to_owned()) ; "basic entry")]
-    #[test_case("2012-01-01T00:00:00+00:00,\"\"\"hello\\nworld\"\"\"" => ("2012-01-01T00:00:00+00:00".to_owned(), "hello\nworld".to_owned()) ; "entry with newline")]
-    #[test_case("2012-01-01T01:00:00+01:00,\"\"\"hello world\"\"\""   => ("2012-01-01T01:00:00+01:00".to_owned(), "hello world".to_owned()) ; "entry with non-UTC timezone")]
-    #[test_case("2012-01-01T00:00:00+00:00,\"\"\"\"\"\""              => ("2012-01-01T00:00:00+00:00".to_owned(), "".to_owned()) ; "empty entry")]
-    fn test_from_str(s: &str) -> (String, String) {
+    #[test_case("2012-01-01T00:00:00+00:00,\"\"\"1\"\"\",\"\"\"hello world\"\"\""   => ("2012-01-01T00:00:00+00:00".to_owned(), "1".to_owned(), "hello world".to_owned()) ; "basic entry")]
+    #[test_case("2012-01-01T00:00:00+00:00,\"\"\"1\"\"\",\"\"\"hello\\nworld\"\"\"" => ("2012-01-01T00:00:00+00:00".to_owned(), "1".to_owned(), "hello\nworld".to_owned()) ; "entry with newline")]
+    #[test_case("2012-01-01T01:00:00+01:00,\"\"\"1\"\"\",\"\"\"hello world\"\"\""   => ("2012-01-01T01:00:00+01:00".to_owned(), "1".to_owned(), "hello world".to_owned()) ; "entry with non-UTC timezone")]
+    #[test_case("2012-01-01T00:00:00+00:00,\"\"\"1\"\"\",\"\"\"\"\"\""              => ("2012-01-01T00:00:00+00:00".to_owned(), "1".to_owned(), "".to_owned()) ; "empty entry")]
+    #[test_case("2012-01-01T00:00:00+00:00,\"\"\"\"\"\",\"\"\"\"\"\""              => ("2012-01-01T00:00:00+00:00".to_owned(), "".to_owned(), "".to_owned()) ; "empty tag")]
+    fn test_from_str(s: &str) -> (String, String, String) {
         let entry: Entry = s.try_into().unwrap();
-        (entry.datetime().to_rfc3339(), entry.message().to_owned())
+        (entry.datetime().to_rfc3339(), entry.tag().to_owned(), entry.message().to_owned())
     }
 }
