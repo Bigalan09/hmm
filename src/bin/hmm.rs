@@ -23,6 +23,10 @@ struct Opt {
     #[structopt(long = "editor", env)]
     editor: Option<String>,
 
+    /// You may add a tag to your hmm journal.  Make it easier to organise your hmms and to query based on them.
+    #[structopt(long = "tag", short="t")]
+    tag: Option<String>,
+
     /// Message to add to your hmm journal. Feel free to use quotes or not, but
     /// be wary of how your shell interprets strings. For example, # is often the
     /// beginning of a comment, so anything after it is likely to be ignored.
@@ -93,7 +97,11 @@ fn app(opt: Opt) -> Result<()> {
         entries.prev_entry()?;
     }
 
-    let res = Entry::with_message(&msg).write(BufWriter::new(&f));
+    let tag = opt
+        .tag
+        .unwrap_or_else(|| "undefined".to_string());
+
+    let res = Entry::with_tag_message(&tag, &msg).write(BufWriter::new(&f));
     f.unlock()?;
     res
 }

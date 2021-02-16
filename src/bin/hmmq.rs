@@ -17,10 +17,10 @@ struct Opt {
 
     /// How to format entry output. hmm uses Handlebars as a template format, see
     /// https://handlebarsjs.com/guide/ for information on how to use them. The
-    /// values "datetime" and "message" are passed in.
+    /// values "datetime", "tag" and "message" are passed in.
     #[structopt(
         long = "format",
-        default_value = "╭ {{ color \"blue\" (strftime \"%Y-%m-%d %H:%M\" datetime) }}\n{{ indent (markdown message) }}╰─────────────────"
+        default_value = "╭ {{ color \"blue\" (strftime \"%Y-%m-%d %H:%M\" datetime) }}{{#if tag}}{{(markdown tag)}}{{/if}}\n{{ indent (markdown message) }}╰─────────────────"
     )]
     format: String,
 
@@ -33,6 +33,10 @@ struct Opt {
     /// ignored.
     #[structopt(long = "random")]
     random: bool,
+
+    // Only print entries where tags contain this substring exactly.
+    #[structopt(short="t", long="tag")]
+    tag: Option<String>,
 
     /// Print the number of matched entries instead of the content of the entries.
     /// If you specify --format alongside this flag, it will not do anything. Same
@@ -192,6 +196,14 @@ fn app(opt: Opt) -> Result<()> {
                 // string to search for, move to the next loop iteration.
                 if opt.contains.is_some()
                     && !entry.message().contains(opt.contains.as_ref().unwrap())
+                {
+                    continue;
+                }
+
+                // If we've found an entry that does not contain the specified
+                // string to search a tag for, move to the next loop iteration.
+                if opt.tag.is_some()
+                    && !entry.tag().contains(opt.tag.as_ref().unwrap())
                 {
                     continue;
                 }

@@ -32,6 +32,7 @@ impl<'a> Format<'a> {
         self.data.clear();
 
         self.data.insert("datetime", entry.datetime().to_rfc3339());
+        self.data.insert("tag", entry.tag().to_owned());
         self.data.insert("message", entry.message().to_owned());
 
         Ok(self.renderer.render("template", &self.data)?)
