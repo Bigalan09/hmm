@@ -181,40 +181,40 @@ mod tests {
     use std::io::Cursor;
     use test_case::test_case;
 
-    // Each TESTDATA line is 43 characters long, 44 if you count the newline.
-    const TESTDATA: &str = "2020-01-01T00:01:00.899849209+00:00,\"\"\"1\"\"\"
-2020-02-12T23:08:40.987613062+00:00,\"\"\"2\"\"\"
-2020-03-12T00:00:00.000000000+00:00,\"\"\"3\"\"\"
-2020-04-12T23:28:45.726598931+00:00,\"\"\"4\"\"\"
-2020-05-12T23:28:48.495151445+00:00,\"\"\"5\"\"\"
-2020-06-13T10:12:53.353050231+00:00,\"\"\"6\"\"\"
+    // Each TESTDATA line is 51 characters long, 52 if you count the newline.
+    const TESTDATA: &str = "2020-01-01T00:01:00.899849209+00:00,\"\"\"1\"\"\",\"\"\"1\"\"\"
+2020-02-12T23:08:40.987613062+00:00,\"\"\"1\"\"\",\"\"\"2\"\"\"
+2020-03-12T00:00:00.000000000+00:00,\"\"\"1\"\"\",\"\"\"3\"\"\"
+2020-04-12T23:28:45.726598931+00:00,\"\"\"1\"\"\",\"\"\"4\"\"\"
+2020-05-12T23:28:48.495151445+00:00,\"\"\"1\"\"\",\"\"\"5\"\"\"
+2020-06-13T10:12:53.353050231+00:00,\"\"\"1\"\"\",\"\"\"6\"\"\"
 ";
 
     // Clippy isn't a big fan of mathematics that can be represented simpler
     // or evaluates to zero, but in these tests it helps make clear that we're
     // searching in to offsets of each line, so we allow it.
     #[allow(clippy::identity_op, clippy::erasing_op)]
-    #[test_case(44 * 0 + 0  => Some("1".to_owned()))]
-    #[test_case(44 * 0 + 10 => Some("1".to_owned()))]
-    #[test_case(44 * 0 + 43 => Some("1".to_owned()))]
-    #[test_case(44 * 1 + 0  => Some("2".to_owned()))]
-    #[test_case(44 * 1 + 10 => Some("2".to_owned()))]
-    #[test_case(44 * 1 + 43 => Some("2".to_owned()))]
-    #[test_case(44 * 2 + 0  => Some("3".to_owned()))]
-    #[test_case(44 * 2 + 10 => Some("3".to_owned()))]
-    #[test_case(44 * 2 + 43 => Some("3".to_owned()))]
-    #[test_case(44 * 3 + 0  => Some("4".to_owned()))]
-    #[test_case(44 * 3 + 10 => Some("4".to_owned()))]
-    #[test_case(44 * 3 + 43 => Some("4".to_owned()))]
-    #[test_case(44 * 4 + 0  => Some("5".to_owned()))]
-    #[test_case(44 * 4 + 10 => Some("5".to_owned()))]
-    #[test_case(44 * 4 + 43 => Some("5".to_owned()))]
-    #[test_case(44 * 5 + 0  => Some("6".to_owned()))]
-    #[test_case(44 * 5 + 10 => Some("6".to_owned()))]
-    #[test_case(44 * 5 + 43 => Some("6".to_owned()))]
-    #[test_case(44 * 6 + 0  => None)]
-    #[test_case(44 * 7 + 0  => None)]
-    #[test_case(44 * 8 + 0  => None)]
+    #[test_case(52 * 0 + 0  => Some("1".to_owned()))]
+    #[test_case(52 * 0 + 10 => Some("1".to_owned()))]
+    #[test_case(52 * 0 + 51 => Some("1".to_owned()))]
+    #[test_case(52 * 1 + 0  => Some("2".to_owned()))]
+    #[test_case(52 * 1 + 10 => Some("2".to_owned()))]
+    #[test_case(52 * 1 + 51 => Some("2".to_owned()))]
+    #[test_case(52 * 2 + 0  => Some("3".to_owned()))]
+    #[test_case(52 * 2 + 10 => Some("3".to_owned()))]
+    #[test_case(52 * 2 + 51 => Some("3".to_owned()))]
+    #[test_case(52 * 3 + 0  => Some("4".to_owned()))]
+    #[test_case(52 * 3 + 10 => Some("4".to_owned()))]
+    #[test_case(52 * 3 + 51 => Some("4".to_owned()))]
+    #[test_case(52 * 4 + 0  => Some("5".to_owned()))]
+    #[test_case(52 * 4 + 10 => Some("5".to_owned()))]
+    #[test_case(52 * 4 + 51 => Some("5".to_owned()))]
+    #[test_case(52 * 5 + 0  => Some("6".to_owned()))]
+    #[test_case(52 * 5 + 10 => Some("6".to_owned()))]
+    #[test_case(52 * 5 + 51 => Some("6".to_owned()))]
+    #[test_case(52 * 6 + 0  => None)]
+    #[test_case(52 * 7 + 0  => None)]
+    #[test_case(52 * 8 + 0  => None)]
     fn test_entry_at(pos: u64) -> Option<String> {
         let r = Cursor::new(Vec::from(TESTDATA.as_bytes()));
         Entries::new(r)

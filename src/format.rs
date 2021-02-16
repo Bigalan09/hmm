@@ -134,6 +134,7 @@ mod tests {
             .unwrap()
             .format_entry(&Entry::new(
                 Utc.ymd(2020, 1, 2).and_hms(3, 4, 5).into(),
+                "".to_owned(),
                 "hello world".to_owned(),
             ))
             .unwrap()
