@@ -20,7 +20,7 @@ struct Opt {
     /// values "datetime", "tag" and "message" are passed in.
     #[structopt(
         long = "format",
-        default_value = "╭ {{ color \"blue\" (strftime \"%Y-%m-%d %H:%M\" datetime) }}{{#if tag}}{{(markdown tag)}}{{/if}}\n{{ indent (markdown message) }}╰─────────────────"
+        default_value = "╭ {{ color \"blue\" (strftime \"%Y-%m-%d %H:%M\" datetime) }}{{#if tag}} ({{(markdown tag)}}){{/if}}\n{{ indent (markdown message) }}╰─────────────────"
     )]
     format: String,
 

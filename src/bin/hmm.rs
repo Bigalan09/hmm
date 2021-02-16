@@ -99,7 +99,7 @@ fn app(opt: Opt) -> Result<()> {
 
     let tag = opt
         .tag
-        .unwrap_or_else(|| "undefined".to_string());
+        .unwrap_or_else(|| "".to_string());
 
     let res = Entry::with_tag_message(&tag, &msg).write(BufWriter::new(&f));
     f.unlock()?;
